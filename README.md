@@ -22,8 +22,8 @@ Built with a focus on transparency, this tool shows you exactly **how** the math
 
 This simulator runs entirely in the browser with no backend required.
 
-1.  **Download:** Clone this repo or download the `index.html` file.
-2.  **Run:** Open `index.html` in any modern web browser (Chrome, Firefox, Edge).
+1.  **Download:** Clone this repo or download the `dnd-damage-calc.html` file.
+2.  **Run:** Open `dnd-damage-calc.html` in any modern web browser (Chrome, Firefox, Edge).
 3.  **Simulate:**
     * Set the **Target AC** in the top dashboard.
     * Configure your attacks in the bottom panel.
