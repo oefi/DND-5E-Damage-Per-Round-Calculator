@@ -4,6 +4,8 @@ A lightweight, interactive web tool to simulate and visualize Damage Per Round (
 
 Built with a focus on transparency, this tool shows you exactly **how** the math is calculated in real-time as you drag dice and toggle modifiers.
 
+
+
 ![Project Status](https://img.shields.io/badge/status-active-success.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
@@ -30,4 +32,8 @@ This simulator runs entirely in the browser with no backend required.
 
 ## 🧮 How It Works
 
-The calculator uses standard 5e probability math:
+The calculator uses standard 5e probability math.
+
+Here is how it looks:
+
+![dmg-calc](https://github.com/user-attachments/assets/dbc67faa-66a0-440d-a2fe-85b47f417886)
