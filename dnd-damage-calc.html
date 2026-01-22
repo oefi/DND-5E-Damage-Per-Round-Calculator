@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D 5e DPR Simulator (Wide Layout)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- GLOBAL RESET --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            background-color: #ecf0f1;
+            color: #333;
+            height: 100vh;
+            display: flex; flex-direction: column;
+            overflow: hidden; 
+        }
+
+        /* --- HEADER --- */
+        .header-bar {
+            background: #fff; padding: 10px 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 20; flex-shrink: 0; height: 50px;
+        }
+        h1 { margin: 0; color: #2c3e50; font-size: 1.4em; display: flex; align-items: center; gap: 10px; }
+        .subtitle { font-size: 0.6em; color: #7f8c8d; border: 1px solid #ccc; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; }
+        .header-controls { display: flex; gap: 10px; }
+        
+        .btn-circle { 
+            border: none; width: 32px; height: 32px; border-radius: 50%; 
+            font-weight: 900; font-size:1.1em; cursor: pointer; color: #2c3e50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.1s;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .btn-circle:hover { transform: scale(1.1); }
+        .btn-help { background: #f1c40f; }
+        .btn-reset { background: #e74c3c; color: white; }
+
+        /* --- MAIN CONTAINER --- */
+        .main-container {
+            display: flex; flex-direction: column;
+            padding: 20px; gap: 20px;
+            flex-grow: 1; overflow: hidden;
+            max-width: 1400px; margin: 0 auto; width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* --- TOP DASHBOARD --- */
+        .dashboard-panel {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+            height: 300px; flex-shrink: 0;
+        }
+
+        .dash-left { display: flex; flex-direction: column; gap: 15px; }
+        .dash-right { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+        /* --- METRICS --- */
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .metric-box { 
+            background: white; padding: 10px; border-radius: 8px; text-align: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e9ecef;
+        }
+        .ac-box { border: 2px solid #e74c3c !important; }
+        input.ac-input {
+            font-size: 1.5em; border: none; outline: none;
+            background: transparent; text-align: center; color: #e74c3c; font-weight: bold; width: 100%;
+        }
+        .metric-val { font-size: 1.4em; font-weight: 800; color: #2c3e50; }
+        .metric-lbl { font-size: 0.65em; text-transform: uppercase; color: #7f8c8d; font-weight: bold; }
+
+        .chart-box {
+            background: white; padding: 10px; border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex-grow: 1; position: relative;
+        }
+
+        /* --- LOG BOX --- */
+        .log-box {
+            background: #2c3e50; color: #ecf0f1; border-radius: 8px;
+            font-family: 'Consolas', monospace; font-size: 0.85em;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 100%;
+        }
+        .log-header {
+            background: #1a252f; padding: 10px 15px; font-weight: bold; border-bottom: 1px solid #34495e;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .log-content { padding: 15px; overflow-y: auto; flex-grow: 1; }
+        .grand-total { background: #27ae60; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 1.1em; }
+        
+        /* Math Styling */
+        .c-blue { color: #5dade2; font-weight: bold; }
+        .c-orange { color: #f5b041; font-weight: bold; }
+        .c-purple { color: #af7ac5; font-weight: bold; }
+        .c-grey { color: #bdc3c7; }
+        .c-green { color: #2ecc71; font-weight: bold; }
+        .op { color: #7f8c8d; margin: 0 4px; }
+
+        /* --- BOTTOM INPUTS (FULL WIDTH) --- */
+        .input-panel {
+            flex-grow: 1; overflow-y: auto; padding-right: 5px; 
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        /* --- DICE PALETTE --- */
+        .dice-palette {
+            position: sticky; top: 0; z-index: 50;
+            background: #2c3e50; padding: 12px; border-radius: 8px;
+            display: flex; justify-content: center; gap: 20px; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); color: white; margin-bottom: 10px;
+        }
+        .die-source {
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: bold; font-size: 0.9em; cursor: grab; user-select: none;
+        }
+        .d4 { background-color: #e74c3c; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); padding-top:5px; }
+        .d6 { background-color: #3498db; border-radius: 4px; }
+        .d8 { background-color: #9b59b6; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .d10 { background-color: #2ecc71; clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+        .d12 { background-color: #f39c12; clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%); }
+        .d20 { background-color: #7f8c8d; clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%); }
+
+        /* --- ROUND CARDS --- */
+        .round-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; margin-bottom: 15px; }
+        .round-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+        
+        /* ATTACK ROW - FULL WIDTH LINEAR */
+        .attack-row {
+            display: grid;
+            grid-template-columns: 80px 100px 100px 1fr 80px 180px 150px;
+            align-items: center; gap: 12px;
+            background: #f9f9f9; padding: 15px; margin-bottom: 10px;
+            border-radius: 8px; border: 1px dashed #ccc;
+        }
+
+        .dice-tray { display: flex; flex-wrap: wrap; gap: 6px; min-height: 44px; background: white; padding: 6px; border-radius: 4px; border: 1px solid #ddd; align-items: center; }
+        .mini-die { width: 28px; height: 28px; font-size: 0.7em; display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; }
+        
+        input.std-input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px; text-align: center; font-weight: bold; }
+        
+        button { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        
+        .btn-toggle { width: 100%; height: 40px; font-size: 0.8em; text-transform: uppercase; background: #bdc3c7; color: white; }
+        .btn-toggle.active.adv { background: #27ae60; }
+        .btn-toggle.active.bless { background: #f39c12; }
+
+        .btn-action { height: 40px; font-size: 0.8em; color: white; text-transform: uppercase; }
+        .btn-copy { background: #3498db; width: 100%; }
+        .btn-del { background: #e74c3c; width: 100%; }
+
+        .btn-add-round { background: #95a5a6; color: white; padding: 15px; width: 100%; font-weight: bold; margin-top: 10px; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 30px; border-radius: 12px; max-width: 600px; }
+        .manual-item { margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        
+        #tt { position: fixed; background: rgba(0,0,0,0.95); color: white; padding: 8px 12px; border-radius: 4px; pointer-events: none; display: none; z-index: 3000; font-size: 0.85em; white-space: pre-line; border: 1px solid rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+<div id="tt"></div>
+
+<div id="help-modal" class="modal" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+        <h2 style="margin-top:0;">Combat Simulator User Manual</h2>
+        
+        <div class="manual-item">
+            <button class="btn-action btn-copy" style="width:160px; pointer-events:none;">DUPLICATE ATTACK</button>
+            <span>Clones the entire attack row. Perfect for <b>Extra Attacks</b>.</span>
+        </div>
+        <div class="manual-item">
+            <button class="btn-action btn-del" style="width:160px; pointer-events:none;">DELETE ATTACK</button>
+            <span>Removes the attack row from the current round.</span>
+        </div>
+        <div class="manual-item">
+            <div style="background:#2c3e50; padding:8px; border-radius:4px;"><div class="die-source d8" style="width:24px; height:24px;">d8</div></div>
+            <span>Drag dice from the top bar into the white <b>Dice Tray</b> to add damage.</span>
+        </div>
+        
+        <p><b>Pro Tip:</b> Use the mouse wheel over the <b>Target AC</b> or <b>Hit/Mod</b> numbers to adjust values instantly!</p>
+
+        <div style="text-align:right; margin-top:20px;">
+            <button onclick="document.getElementById('help-modal').style.display='none'" style="background:#2c3e50; color:white; padding:10px 20px;">Close Manual</button>
+        </div>
+    </div>
+</div>
+
+<div class="header-bar">
+    <h1>⚔️ D&D 5e DPR <span class="subtitle">4-Round Sim</span></h1>
+    <div class="header-controls">
+        <button class="btn-circle btn-reset" onclick="resetToDefaults()" data-tip="Reset to Defaults\n(Restores standard +8/1d8+5 configuration)">⟳</button>
+        <button class="btn-circle btn-help" onclick="document.getElementById('help-modal').style.display='flex'" data-tip="Open User Manual">?</button>
+    </div>
+</div>
+
+<div class="main-container">
+    
+    <div class="dashboard-panel">
+        <div class="dash-left">
+            <div class="metrics-grid">
+                <div class="metric-box ac-box" data-tip="Target Armor Class.\nScroll mouse wheel here to adjust.">
+                    <div class="metric-lbl">Target AC</div>
+                    <input type="number" id="target-ac" class="ac-input" value="15" oninput="calc()">
+                </div>
+                <div class="metric-box" data-tip="Total expected damage over 4 rounds.">
+                    <div class="metric-val" id="total-dmg">0</div>
+                    <div class="metric-lbl">Total (4 Rnds)</div>
+                </div>
+                <div class="metric-box" data-tip="Average Damage Per Round.">
+                    <div class="metric-val" id="dpr" style="color:#3498db;">0</div>
+                    <div class="metric-lbl">Avg DPR</div>
+                </div>
+            </div>
+            <div class="chart-box" data-tip="Cumulative damage projection.">
+                <canvas id="dmgChart"></canvas>
+            </div>
+        </div>
+        <div class="dash-right">
+            <div class="log-box">
+                <div class="log-header" data-tip="Real-time formula breakdown.">
+                    <span>Live Calculations</span>
+                    <span style="font-size:0.75em; color:#bdc3c7;">(Hit% × Avg) + (Crit% × Dice)</span>
+                </div>
+                <div id="log-content" class="log-content"></div>
+                <div id="grand-total-bar" class="grand-total">Total: 0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-panel">
+        <div class="dice-palette">
+            <span style="font-size:0.8em; font-weight:bold; color:#95a5a6; text-transform:uppercase;">Drag Dice:</span>
+            <div class="die-source d4" draggable="true" ondragstart="drag(event)" data-type="d4" data-tip="d4 (Avg 2.5)">d4</div>
+            <div class="die-source d6" draggable="true" ondragstart="drag(event)" data-type="d6" data-tip="d6 (Avg 3.5)">d6</div>
+            <div class="die-source d8" draggable="true" ondragstart="drag(event)" data-type="d8" data-tip="d8 (Avg 4.5)">d8</div>
+            <div class="die-source d10" draggable="true" ondragstart="drag(event)" data-type="d10" data-tip="d10 (Avg 5.5)">d10</div>
+            <div class="die-source d12" draggable="true" ondragstart="drag(event)" data-type="d12" data-tip="d12 (Avg 6.5)">d12</div>
+            <div class="die-source d20" draggable="true" ondragstart="drag(event)" data-type="d20" data-tip="d20 (Avg 10.5)">d20</div>
+        </div>
+
+        <div id="rounds-container"></div>
+        <div id="footer-actions"></div>
+    </div>
+</div>
+
+<script>
+    let rounds = [];
+    let myChart = null;
+    const AVGS = { 'd4': 2.5, 'd6': 3.5, 'd8': 4.5, 'd10': 5.5, 'd12': 6.5, 'd20': 10.5 };
+    const D_ORDER = ['d4','d6','d8','d10','d12','d20'];
+    const BOUNDS = { ac: { min: 0, max: 50 }, toHit: { min: -10, max: 50 }, mod: { min: -10, max: 100 } };
+    function clamp(v,min,max){return Math.min(Math.max(v,min),max);}
+
+    function init() {
+        rounds = [{attacks:[{toHit:8, dice:['d8'], flat:5, adv:false, bless:false}]}];
+        document.getElementById('target-ac').value = 15;
+        startChart(); render(); calc();
+    }
+
+    function resetToDefaults() { if(confirm("Reset all combat data?")) init(); }
+
+    function calc() {
+        const ac = clamp(parseInt(document.getElementById('target-ac').value)||15, BOUNDS.ac.min, BOUNDS.ac.max);
+        let total = 0; let chartData = [0]; let html = "";
+
+        for(let r=0; r<4; r++) {
+            const rnd = rounds[r] || rounds[rounds.length-1];
+            let rDmg = 0;
+            if(rounds[r]) html += `<div style="background:#34495e; color:#f1c40f; font-weight:bold; padding:4px 8px; font-size:0.8em; margin-top:10px; border-radius:4px; text-transform:uppercase;">Round ${r+1}</div>`;
+
+            rnd.attacks.forEach((atk, i) => {
+                let dAvg = 0; atk.dice.forEach(d => dAvg += AVGS[d]);
+                let totalAvg = dAvg + atk.flat;
+                let bonus = atk.toHit + (atk.bless ? 2.5 : 0);
+                let p = clamp((21 - (ac - bonus)) / 20, 0.05, 0.95);
+                let crit = 0.05;
+                if(atk.adv) { p = 1 - Math.pow(1-p, 2); crit = 1 - Math.pow(0.95, 2); }
+                let eVal = (p * totalAvg) + (crit * dAvg);
+                rDmg += eVal;
+
+                if(rounds[r]) { 
+                    html += `<div style="margin-bottom:8px; padding-bottom:5px; border-bottom:1px dashed #444;">
+                    <div style="font-weight:bold;">#${i+1}: +${atk.toHit} vs AC${ac}</div>
+                    <div style="font-size:0.95em;">
+                    <span class="c-blue">${(p*100).toFixed(0)}%</span> <span class="op">×</span> 
+                    <span class="c-orange">${totalAvg}</span> <span class="op">+</span> 
+                    <span class="c-purple">${(crit*100).toFixed(1)}%</span> <span class="op">×</span> 
+                    <span class="c-grey">${dAvg}</span> <span class="op">=</span> 
+                    <span class="c-green">${eVal.toFixed(2)}</span></div></div>`;
+                }
+            });
+            total += rDmg; chartData.push(total);
+        }
+        document.getElementById('log-content').innerHTML = html;
+        document.getElementById('grand-total-bar').innerText = "Total Expected: " + total.toFixed(1);
+        document.getElementById('total-dmg').innerText = total.toFixed(0);
+        document.getElementById('dpr').innerText = (total/4).toFixed(1);
+        if(myChart) { myChart.data.datasets[0].data = chartData; myChart.update(); }
+    }
+
+    function render() {
+        const c = document.getElementById('rounds-container');
+        c.innerHTML = '';
+        rounds.forEach((rnd, rI) => {
+            let h = `<div class="round-card">
+                <div class="round-top">
+                    <strong>Round ${rI+1} Configuration</strong>
+                    ${rounds.length>1?`<button class="btn-txt-red" onclick="delRnd(${rI})" data-tip="Remove entire round">Remove Round</button>`:''}
+                </div>`;
+            
+            rnd.attacks.forEach((atk, aI) => {
+                let dHtml = '';
+                atk.dice.forEach((d,dI) => { dHtml += `<div class="mini-die ${d}" onclick="delDie(${rI},${aI},${dI})" onwheel="scrollDie(event,${rI},${aI},${dI})" data-tip="Click to remove\nScroll to change type">${d}</div>`; });
+                
+                h += `<div class="attack-row" ondrop="drop(event,${rI},${aI})" ondragover="allow(event)">
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <span style="font-size:0.6em; font-weight:bold; color:#999;">HIT</span>
+                        <input type="number" class="std-input" value="${atk.toHit}" oninput="setV(${rI},${aI},'toHit',this.value)" onwheel="scrollVal(event,this,${rI},${aI},'toHit')" data-tip="To Hit Bonus">
+                    </div>
+                    <button class="btn-toggle adv ${atk.adv?'active':''}" onclick="tog(${rI},${aI},'adv')" data-tip="Toggle Advantage">Advantage</button>
+                    <button class="btn-toggle bless ${atk.bless?'active':''}" onclick="tog(${rI},${aI},'bless')" data-tip="Toggle Bless">Bless</button>
+                    <div class="dice-tray" data-tip="Damage Dice Tray">${dHtml || '<span style="color:#ccc; font-size:0.7em;">Drop Dice</span>'}</div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <span style="font-size:0.6em; font-weight:bold; color:#999;">MOD</span>
+                        <input type="number" class="std-input" value="${atk.flat}" oninput="setV(${rI},${aI},'flat',this.value)" onwheel="scrollVal(event,this,${rI},${aI},'flat')" data-tip="Flat Damage Mod">
+                    </div>
+                    <button class="btn-action btn-copy" onclick="dup(${rI},${aI})" data-tip="Clone this attack row">Duplicate Attack</button>
+                    <button class="btn-action btn-del" onclick="delAtk(${rI},${aI})" data-tip="Remove this attack row">Delete Attack</button>
+                </div>`;
+            });
+            c.innerHTML += h + `</div>`;
+        });
+        const f = document.getElementById('footer-actions');
+        if (rounds.length < 4) f.innerHTML = `<button class="btn-add-round" onclick="addRound()">+ Add New Round Config</button>`;
+        else f.innerHTML = `<div style="text-align:center; color:#95a5a6; font-weight:bold; padding:15px;">Max Rounds (4) Configured</div>`;
+    }
+
+    function setV(r,a,k,v) { 
+        let val = parseInt(v)||0; 
+        if(k==='toHit') val=clamp(val,BOUNDS.toHit.min,BOUNDS.toHit.max);
+        if(k==='flat') val=clamp(val,BOUNDS.mod.min,BOUNDS.mod.max);
+        rounds[r].attacks[a][k]=val; calc(); 
+    }
+    function scrollVal(e,el,r,a,k) { e.preventDefault(); let v=parseInt(el.value)||0; v+=(e.deltaY<0?1:-1); el.value=v; setV(r,a,k,v); }
+    function scrollDie(e,r,a,d) { e.preventDefault(); e.stopPropagation(); let idx=D_ORDER.indexOf(rounds[r].attacks[a].dice[d]); idx=clamp(idx+(e.deltaY<0?1:-1),0,5); rounds[r].attacks[a].dice[d]=D_ORDER[idx]; render(); calc(); }
+    function tog(r,a,k) { rounds[r].attacks[a][k]=!rounds[r].attacks[a][k]; render(); calc(); }
+    function dup(r,a) { rounds[r].attacks.splice(a+1,0, JSON.parse(JSON.stringify(rounds[r].attacks[a]))); render(); calc(); }
+    function delAtk(r,a) { rounds[r].attacks.splice(a,1); if(rounds[r].attacks.length===0) rounds[r].attacks.push({toHit:8, dice:['d8'], flat:5, adv:false, bless:false}); render(); calc(); }
+    function delDie(r,a,d) { rounds[r].attacks[a].dice.splice(d,1); render(); calc(); }
+    function addRound() { if(rounds.length>=4)return; rounds.push(JSON.parse(JSON.stringify(rounds[rounds.length-1]))); render(); calc(); }
+    function delRnd(r) { rounds.splice(r,1); render(); calc(); }
+    function drag(e){e.dataTransfer.setData("text",e.target.dataset.type);}
+    function allow(e){e.preventDefault();}
+    function drop(e,r,a){ e.preventDefault(); const t=e.dataTransfer.getData("text"); if(AVGS[t]){rounds[r].attacks[a].dice.push(t); render(); calc();} }
+
+    function startChart() {
+        const ctx=document.getElementById('dmgChart').getContext('2d');
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, { type:'line', data:{labels:['Start','R1','R2','R3','R4'], datasets:[{data:[0], borderColor:'#2c3e50', backgroundColor:'rgba(52, 152, 219, 0.1)', fill:true, tension:0.3}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
+    }
+
+    const tt = document.getElementById('tt');
+    document.addEventListener('mousemove', e => {
+        const t = e.target.closest('[data-tip]');
+        if(t) { 
+            tt.innerText = t.dataset.tip.replace(/\\n/g, '\n'); tt.style.display='block';
+            let left = e.clientX + 12; if(left+200 > window.innerWidth) left = e.clientX-210;
+            tt.style.left=left+'px'; tt.style.top=(e.clientY+12)+'px';
+        } else tt.style.display='none';
+    });
+    document.addEventListener('wheel', () => { tt.style.display='none'; });
+
+    document.getElementById('target-ac').addEventListener('wheel', e => { e.preventDefault(); let v=parseInt(e.target.value)||15; v+=(e.deltaY<0?1:-1); e.target.value=clamp(v,0,50); calc(); });
+    
+    init();
+</script>
+</body>
+</html>
