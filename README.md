@@ -1,63 +1,31 @@
-# ⚔️ D&D 5e DPR Simulator
+# D&D 5e DPR Calculator (2024 Edition)
 
-A lightweight, interactive web tool to simulate and visualize Damage Per Round (DPR) for Dungeons & Dragons 5th Edition. 
+This is a web-based Damage Per Round (DPR) calculator for **Dungeons & Dragons 5e**, updated for the **2024 ruleset**. It helps players and dungeon masters simulate expected damage output over four rounds of combat, factoring in attack bonuses, dice rolls, modifiers, and new mechanics like Weapon Mastery.
 
-Built with a focus on transparency, this tool shows you exactly **how** the math is calculated in real-time as you drag dice and toggle modifiers.
-
-![Project Status](https://img.shields.io/badge/status-active-success.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
-Here is how it looks:
-
-![dmg-calc](https://github.com/user-attachments/assets/dbc67faa-66a0-440d-a2fe-85b47f417886)
+## Here is how it looks:
+<img width="1143" height="1166" alt="image" src="https://github.com/user-attachments/assets/7ae6d250-c053-423c-a46f-5b4e1532c576" />
 
 ## ✨ Features
 
-* **Split-Screen Dashboard:** View your metrics, graph, and calculation log side-by-side with your build inputs.
-* **Drag-and-Drop Dice:** Drag d4, d6, d8, d10, d12, or d20s directly into attack rows.
-* **Multi-Round Simulation:** Configure up to 4 unique rounds (e.g., set up a "Nova" round with buffs, followed by standard attacks).
-* **Live Math Log:** See the exact formula used for every calculation: `(Hit% × Avg) + (Crit% × Dice)`.
-* **Visual Graph:** A line chart powered by Chart.js projects cumulative damage over the combat duration.
-* **Pro Modifiers:** Buttons for **Advantage** and **Bless**, plus custom "To Hit" and "Flat Damage" inputs.
+- 🎯 Target AC and Crit Range configuration
+- 🎲 Drag-and-drop dice tray (d4–d12)
+- ⚔️ Per-attack toggles: Advantage, Super Advantage, Bless, Graze, Great Weapon Fighting
+- 📊 Live damage calculations and cumulative chart
+- 🧠 Smart hit chance and crit math (including 3d20 logic)
+- 🛠️ Duplicate and delete attacks easily
+- 📦 Global toggles for all attacks (All Advantage, All Bless, etc.)
+- 📚 Built-in manual with tooltips for every element
 
-## 🚀 Usage
+## 📦 Getting Started
 
-This simulator runs entirely in the browser with no backend required.
+Just open `index.html` in your browser — no installation required.
 
-1.  **Download:** Clone this repo or download the `dnd-damage-calc.html` file.
-2.  **Run:** Open `dnd-damage-calc.html` in any modern web browser (Chrome, Firefox, Edge).
-3.  **Simulate:**
-    * Set the **Target AC** in the top dashboard.
-    * Configure your attacks in the bottom panel.
-    * Drag dice from the blue palette into the white dice trays.
-    * Watch the math update instantly!
+## 🛠️ Tech Stack
 
-## 🧮 How It Works
+- HTML5 / CSS3
+- Vanilla JavaScript
+- Chart.js for visualizations
 
-The calculator uses standard 5e probability math:
+## 📖 License
 
-**Expected Damage =** `(Hit Chance × Average Damage) + (Crit Chance × Dice Damage)`
-* **Hit Chance:** Calculated based on `(21 - (Target AC - To Hit Bonus)) / 20`.
-* **Advantage:** `1 - (1 - Hit Chance)^2`.
-* **Bless:** Adds +2.5 to the average To Hit bonus.
-* **Crits:** Assumes a standard 5% chance (natural 20), adjusting to ~9.75% with Advantage. Crit damage adds the average of the dice only (not flat modifiers).
-
-## 🛠️ Built With
-
-* **HTML5 / CSS3:** Custom responsive grid layout.
-* **Vanilla JavaScript:** No frameworks, just pure logic.
-* **Chart.js:** For the damage projection graph (loaded via CDN).
-
-## 🤝 Contributing
-
-Contributions are welcome! If you have ideas for features (e.g., Great Weapon Master toggles, Elven Accuracy, or Saving Throw spells), feel free to fork the repo and submit a Pull Request.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+MIT License — free to use, modify, and share.
