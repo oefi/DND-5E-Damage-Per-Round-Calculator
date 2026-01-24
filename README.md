@@ -3,7 +3,7 @@
 This is a web-based Damage Per Round (DPR) calculator for **Dungeons & Dragons 5e**, updated for the **2024 ruleset**. It helps players and dungeon masters simulate expected damage output over four rounds of combat, factoring in attack bonuses, dice rolls, modifiers, and new mechanics like Weapon Mastery.
 
 ## Here is how it looks:
-<img width="1143" height="1166" alt="image" src="https://github.com/user-attachments/assets/7ae6d250-c053-423c-a46f-5b4e1532c576" />
+<img width="610" height="657" alt="image" src="https://github.com/user-attachments/assets/6e5ef49f-02c1-4076-86b0-5feed26af73c" />
 
 ## ✨ Features
 
