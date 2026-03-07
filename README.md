@@ -6,7 +6,7 @@ This is a web-based Damage Per Round (DPR) calculator for **Dungeons & Dragons 5
 
 Live Demo here:
 
-https://oefi.github.io/DND-5E-Damage-Per-Round-Calculator/
+[https://oefi.github.io/DND-5E-Damage-Per-Round-Calculator/](https://oefi.github.io/dnd5e-dpr-calc/)
 
 or
 
